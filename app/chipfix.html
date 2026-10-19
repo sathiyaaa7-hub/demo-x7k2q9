@@ -1,0 +1,46 @@
+<!doctype html><html><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>chipfix</title><style>
+:root{--bg:#F7F7F2;--card:#FFFFFF;--tx:#1F2937;--bd:#D9E0DC;--brand:#0b3d2e}
+@font-face{font-family:'Tinos';font-weight:400;src:url('fonts/Tinos_latin_400.woff2') format('woff2');unicode-range:U+0000-00FF,U+2000-206F}
+@font-face{font-family:'Tinos';font-weight:700;src:url('fonts/Tinos_latin_700.woff2') format('woff2');unicode-range:U+0000-00FF,U+2000-206F}
+@font-face{font-family:'Mukta Malar';font-weight:400;src:url('fonts/Mukta_Malar_tamil_400.woff2') format('woff2');unicode-range:U+0B82-0BFA,U+200C-200D}
+@font-face{font-family:'Mukta Malar';font-weight:600;src:url('fonts/Mukta_Malar_tamil_600.woff2') format('woff2');unicode-range:U+0B82-0BFA,U+200C-200D}
+@font-face{font-family:'Mukta Malar';font-weight:700;src:url('fonts/Mukta_Malar_tamil_700.woff2') format('woff2');unicode-range:U+0B82-0BFA,U+200C-200D}
+body{font-family:'Times New Roman',Tinos,'Mukta Malar',serif;font-variant-numeric:tabular-nums;line-height:1.45;margin:0;background:var(--bg);color:var(--tx);overflow-x:hidden}
+button{font-family:inherit}
+.main{padding:6px;box-sizing:border-box}
+/* AFTER: tab bar class (added to app index.html) */
+.ctabs{display:flex;flex-wrap:wrap;gap:8px;margin:10px}
+@media (min-width:960px){.ctabs{display:grid;grid-template-columns:repeat(5,minmax(0,1fr))}}
+</style></head><body><div class="main" id="root"></div><script>
+const V=new URLSearchParams(location.search).get('v')||'before';
+const btn0='padding:10px 16px;font-size:15px;font-weight:600;border:0;border-radius:9px;background:#17643D;color:#fff;cursor:pointer;min-height:44px';
+const ghost0=btn0+';background:var(--card);color:var(--tx);border:1px solid var(--bd)';
+const cbtn='padding:10px 16px;font-size:15px;font-weight:600;border:0;border-radius:9px;background:var(--brand);color:#fff;margin:4px 6px 4px 0';
+const cghost=cbtn+';background:var(--card);color:var(--tx);border:1px solid var(--bd)';
+const L={
+ tabsEn:['Cases','Finance','Statements','Sheets','Forwards'],
+ tabsTa:['வழக்குகள்','நிதி நிறுவனம்','அறிக்கைப் பட்டியல்','Sheets','அனுப்பியவை'],
+ finEn:['All (1)','Unassigned (0)','Not visited (1)','Visited (0)'],
+ finTa:['அனைத்தும் (1)','ஒதுக்கப்படவில்லை (0)','பார்வையிடப்படவில்லை (1)','பார்வையிடப்பட்டது (0)'],
+ caseEn:['All 3','new 1','assigned 1','in progress 1','under review 0','returned 0','submitted 0','Unassigned 1','Overdue 0','Aging 0'],
+ caseTa:['அனைத்தும் 3','புதியது 1','ஒதுக்கப்பட்டது 1','நடைபெறுகிறது 1','மறுஆய்வில் 0','திருப்பப்பட்டது 0','சமர்ப்பிக்கப்பட்டது 0','ஒதுக்கப்படவில்லை 1','தாமதம் 0','நிலுவை 2+ நாள் 0']};
+function tabbar(id,labels){
+  const wrap=V==='before';
+  const ds=wrap?'display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin:10px':'';
+  const bs=(i)=>((i===1)?cbtn:cghost)+';margin:0;padding:10px 2px;min-width:0;font-size:14px'+(wrap?'':';flex:1 1 30%');
+  return '<h4>'+id+'</h4><div id="'+id+'" '+(wrap?'style="'+ds+'"':'class="ctabs"')+'>'+labels.map((l,i)=>'<button style="'+bs(i)+'">'+l+'</button>').join('')+'</div>';
+}
+function finrow(id,labels){
+  const ds=V==='before'?'display:flex;gap:6px;margin:10px;overflow-x:auto':'display:flex;gap:6px;margin:10px;flex-wrap:wrap';
+  return '<h4>'+id+'</h4><div id="'+id+'" role="tablist" style="'+ds+'">'+labels.map((l,i)=>'<button role="tab" style="'+((i===0)?btn0:ghost0)+';padding:8px 12px;white-space:nowrap">'+l+'</button>').join('')+'</div>';
+}
+function caserow(id,labels){
+  const ds=V==='before'?'display:flex;gap:6px;margin:10px;overflow-x:auto':'display:flex;gap:6px;margin:10px;flex-wrap:wrap';
+  const bs=(i)=>'flex:0 0 auto;padding:8px 12px;border-radius:10px;font-weight:600;border:1px solid '+(i===0?'#17643D':'var(--bd)')+';background:'+(i===0?'#17643D':'var(--card)')+';color:'+(i===0?'#fff':'var(--tx)');
+  return '<h4>'+id+'</h4><div id="'+id+'" role="tablist" style="'+ds+'">'+labels.map((l,i)=>'<button role="tab" style="'+bs(i)+'">'+l+'</button>').join('')+'</div>';
+}
+document.getElementById('root').innerHTML=
+ tabbar('tabs-en',L.tabsEn)+tabbar('tabs-ta',L.tabsTa)+
+ finrow('fin-en',L.finEn)+finrow('fin-ta',L.finTa)+
+ caserow('case-en',L.caseEn)+caserow('case-ta',L.caseTa);
+</script></body></html>
