@@ -1,0 +1,157 @@
+<!doctype html><html data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Theme toggle animation - demo</title>
+<style>
+@font-face{font-family:'Tinos';font-style:normal;font-weight:400;font-display:swap;src:url('Tinos_400.woff2') format('woff2')}
+@font-face{font-family:'Tinos';font-style:normal;font-weight:700;font-display:swap;src:url('Tinos_700.woff2') format('woff2')}
+:root{--bg:#F7F7F2;--card:#FFFFFF;--tx:#1c2b23;--mut:#6b7a70;--bd:#d8d5cb;--soft:#eef2ec;--brand:#17643D;--ttl:#12211a;--sub:#55645b;--sh:0 8px 26px #17643d14,0 1px 3px #17643d12;--inbg:#fff;--ph:#9aa79e}
+[data-theme=dark]{--bg:#0D1310;--card:#151F19;--tx:#E6EDE8;--mut:#93A39A;--bd:#27352D;--soft:#1B2820;--brand:#2A8A58;--ttl:#DDF0E4;--sub:#A9B8AE;--sh:0 8px 26px #0008,0 1px 3px #0007;--inbg:#101914;--ph:#6B7F73}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:'Times New Roman',Tinos,'Mukta Malar',serif;min-height:100vh}
+#tbtn{position:fixed;top:calc(14px + env(safe-area-inset-top));right:14px;z-index:20;width:44px;height:44px;border-radius:50%;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;touch-action:manipulation;box-shadow:var(--sh)}
+#tbtn .tic{position:absolute;width:22px;height:22px;transition:transform .28s cubic-bezier(.3,.7,.2,1),opacity .22s ease}
+#tbtn .isun{transform:scale(0) rotate(-100deg);opacity:0}
+#tbtn .imoon{transform:scale(1) rotate(0);opacity:1}
+[data-theme=dark] #tbtn .isun{transform:scale(1) rotate(0);opacity:1}
+[data-theme=dark] #tbtn .imoon{transform:scale(0) rotate(100deg);opacity:0}
+@media (prefers-reduced-motion:reduce){#tbtn .tic{transition:none}}
+.wrap{max-width:440px;margin:0 auto;padding:76px 20px 40px}
+.logo{background:linear-gradient(180deg,#0f3d25,#17643D);border-radius:18px;padding:34px 18px 26px;text-align:center;margin-bottom:22px}
+.logo b{display:block;color:#F7F7F2;font-size:30px;letter-spacing:2px}
+.logo span{color:#cfe3d5;font-size:11px;letter-spacing:3px}
+h1{font-size:26px;margin:0 0 14px;color:var(--ttl)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:18px;box-shadow:var(--sh);padding:20px 19px}
+.tabs{display:flex;background:var(--soft);border-radius:10px;padding:3px;margin-bottom:14px}
+.tabs div{flex:1;text-align:center;padding:9px 0;border-radius:8px;font-size:15px;color:var(--sub);font-weight:600}
+.tabs .on{background:var(--card);color:var(--brand);box-shadow:0 1px 3px #0002}
+label{display:block;font-size:14px;font-weight:600;color:var(--ttl);margin:10px 0 4px}
+.inp{width:100%;padding:11px 12px;font-size:15px;border:1px solid var(--bd);border-radius:9px;background:var(--inbg);color:var(--tx);font-family:inherit}
+.inp::placeholder{color:var(--ph);font-size:12.5px}
+.go{width:100%;margin-top:16px;padding:13px;border:0;border-radius:10px;background:var(--brand);color:#fff;font-size:16.5px;font-weight:700;font-family:inherit}
+.fp{display:block;margin-top:14px;font-size:12.5px;color:var(--brand)}
+/* demo bar */
+#dbar{position:fixed;bottom:0;left:0;right:0;z-index:30;background:var(--card);border-top:1px solid var(--bd);padding:8px 10px calc(8px + env(safe-area-inset-bottom));display:flex;gap:6px;align-items:center;justify-content:center;flex-wrap:wrap}
+#dbar b{font-size:12px;color:var(--mut);margin-right:2px}
+.pill{border:1px solid var(--bd);background:var(--card);color:var(--tx);border-radius:16px;padding:7px 13px;font-size:13px;cursor:pointer;font-family:inherit}
+.pill.on{background:var(--brand);border-color:var(--brand);color:#fff;font-weight:700}
+/* covers: transform/opacity only */
+.cover{position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0}
+/* style 1: reveal - solid old-bg cover, scale+fade out after flip */
+/* style 2: orb - circle grows from the button in NEW bg color, then fades */
+#orb{border-radius:50%;width:10px;height:10px;left:0;top:0}
+/* style 3: curtain - slab sweeps down in NEW bg color, flips, sweeps off */
+@media (prefers-reduced-motion:reduce){.cover{transition:none!important}}
+/* live circle: native view-transition snapshots - no cover layer at all, zero flat frames */
+::view-transition-old(root),::view-transition-new(root){animation:none;mix-blend-mode:normal}
+::view-transition-old(root){z-index:2147483646}
+::view-transition-new(root){z-index:2147483647}
+</style></head><body>
+<button id="tbtn" aria-label="Theme">
+  <svg class="tic imoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 13.2 A8.5 8.5 0 1 1 10.8 3.5 A7 7 0 0 0 20.5 13.2 Z" pathLength="1"/></svg>
+  <svg class="tic isun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16.9 A4.9 4.9 0 1 0 12 7.1 A4.9 4.9 0 0 0 12 16.9 Z" pathLength="1"/><path d="M12 2.1 V4.1 M12 19.9 V21.9 M4.2 4.2 L5.6 5.6 M18.4 18.4 L19.8 19.8 M2.1 12 H4.1 M19.9 12 H21.9 M4.2 19.8 L5.6 18.4 M18.4 5.6 L19.8 4.2" pathLength="1"/></svg>
+</button>
+<div class="wrap">
+  <div class="logo"><b>GLOBAL</b><span>CONSTRUCTION &amp; PROPERTIES</span></div>
+  <h1>Sign in</h1>
+  <div class="card">
+    <div class="tabs"><div>Officials</div><div class="on">Engineers</div><div>Finance</div></div>
+    <label>Gmail or User ID</label><input class="inp" placeholder="Enter your Gmail or User ID">
+    <label>Password</label><input class="inp" type="password" placeholder="Enter your password">
+    <button class="go">Sign in</button>
+    <a class="fp">Forgot password?</a>
+  </div>
+</div>
+<div id="dbar"><b>Theme animation demo:</b>
+  <button class="pill" data-s="reveal">1 Reveal</button>
+  <button class="pill on" data-s="orb">2 Live circle</button>
+  <button class="pill" data-s="curtain">3 Curtain</button>
+  <button class="pill" id="fx">lowfx: off</button>
+</div>
+<script>
+var style='orb', lowfx=false, busy=false;
+var RM=matchMedia('(prefers-reduced-motion: reduce)');
+function bgOf(t){return t==='dark'?'#0D1310':'#F7F7F2'}
+function cur(){return document.documentElement.getAttribute('data-theme')}
+function flip(n){document.documentElement.setAttribute('data-theme',n)}
+function mkCover(){var d=document.createElement('div');d.className='cover';document.body.appendChild(d);return d}
+function toggle(){
+  if(busy)return;busy=true;
+  var n=cur()==='dark'?'light':'dark';
+  if(RM.matches){flip(n);busy=false;return}
+  if(style==='reveal'){
+    // ChatGPT A / Gemini B: cover the OLD theme with an opaque layer, flip underneath, scale+fade the cover away
+    var c=mkCover();c.style.background=bgOf(cur());c.style.opacity='1';c.style.transform='scale(1)';
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      flip(n);
+      c.style.transition=lowfx?'opacity 150ms ease-out':'opacity 240ms cubic-bezier(.22,.75,.25,1),transform 240ms cubic-bezier(.22,.75,.25,1)';
+      c.style.opacity='0';if(!lowfx)c.style.transform='scale(1.015)';
+      setTimeout(function(){c.remove();busy=false},270);
+    })});
+  }else if(style==='orb'){
+    // LIVE CIRCLE: new theme grows as a circle out of the moon button, continuously.
+    var b=document.getElementById('tbtn').getBoundingClientRect();
+    var cx=b.left+b.width/2, cy=b.top+b.height/2;
+    var rad=Math.ceil(Math.sqrt(Math.max(cx,innerWidth-cx)**2+Math.max(cy,innerHeight-cy)**2))+8;
+    if(document.startViewTransition && !lowfx){
+      // Path A: browser snapshots old+new page; new theme revealed by a growing circle. Old content
+      // stays visible the whole time - there is NO cover layer, so a flat/empty frame is impossible.
+      var vt=document.startViewTransition(function(){flip(n)});
+      vt.ready.then(function(){
+        document.documentElement.animate(
+          {clipPath:['circle(0px at '+cx+'px '+cy+'px)','circle('+rad+'px at '+cx+'px '+cy+'px)']},
+          {duration:400,easing:'cubic-bezier(.25,.8,.3,1)',pseudoElement:'::view-transition-new(root)'});
+      }).catch(function(){});
+      vt.finished.then(function(){busy=false},function(){busy=false});
+    }else{
+      // Path B fallback (no view-transitions / lowfx): Web Animations API chained with .finished
+      // promises - no setTimeout. A late timer is what left a static full-cover frame (= the blink
+      // in his video). Grow ends -> flip -> fade starts in the SAME frame while the circle keeps
+      // expanding slightly, so the flat cover lives for at most one compositor frame (~16ms).
+      var o=mkCover();o.id='orb';o.style.background=bgOf(n);
+      o.style.width=o.style.height=(rad*2)+'px';
+      o.style.left=(cx-rad)+'px';o.style.top=(cy-rad)+'px';
+      // BOTH animations scheduled up front on the compositor clock. The fade starts on time even
+      // while the main thread is busy recoloring the page for the flip (that block is what froze
+      // a flat screen in his video). Whenever the flip lands, it lands under a fading veil = soft
+      // cross-blend, never a static flat frame.
+      var GD=lowfx?180:250, OD=lowfx?110:190;
+      var grow=o.animate(
+        [{transform:'scale(0)',opacity:1},{transform:'scale(1)',opacity:1}],
+        {duration:GD,easing:'cubic-bezier(.25,.8,.3,1)',fill:'forwards'});
+      var out=o.animate(
+        lowfx?[{opacity:1},{opacity:0}]:[{opacity:1,transform:'scale(1)'},{opacity:0,transform:'scale(1.06)'}],
+        {duration:OD,delay:GD,easing:'ease-out',fill:'forwards'});
+      var flipped=false;
+      function doFlip(){if(!flipped){flipped=true;flip(n)}}
+      // Flip at ~88% of the grow: only a tiny far-corner crescent is still uncovered, and the
+      // page-recolor main-thread block then overlaps the grow's tail instead of freezing a
+      // full-cover frame. grow.finished / out.finished are safety nets for slow timers.
+      setTimeout(doFlip,Math.round(GD*0.88));
+      grow.finished.then(doFlip).catch(doFlip);
+      out.finished.then(function(){doFlip();o.remove();busy=false}).catch(function(){doFlip();o.remove();busy=false});
+    }
+  }else{
+    // Gemini A: solid slab sweeps down over the page, flip at full cover, sweeps off the bottom
+    var c2=mkCover();c2.style.background=bgOf(n);c2.style.opacity='1';c2.style.transform='translate3d(0,-100%,0)';
+    requestAnimationFrame(function(){requestAnimationFrame(function(){
+      c2.style.transition='transform 140ms cubic-bezier(.32,0,.67,0)';
+      c2.style.transform='translate3d(0,0,0)';
+      setTimeout(function(){
+        flip(n);
+        c2.style.transition='transform 140ms cubic-bezier(.33,1,.68,1)';
+        c2.style.transform='translate3d(0,100%,0)';
+        setTimeout(function(){c2.remove();busy=false},170);
+      },150);
+    })});
+  }
+}
+document.getElementById('tbtn').addEventListener('click',toggle);
+Array.prototype.forEach.call(document.querySelectorAll('[data-s]'),function(p){
+  p.addEventListener('click',function(){
+    style=p.dataset.s;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-s]'),function(x){x.classList.toggle('on',x===p)});
+  });
+});
+document.getElementById('fx').addEventListener('click',function(){
+  lowfx=!lowfx;document.getElementById('fx').textContent='lowfx: '+(lowfx?'on':'off');
+  document.getElementById('fx').classList.toggle('on',lowfx);
+});
+</script></body></html>
