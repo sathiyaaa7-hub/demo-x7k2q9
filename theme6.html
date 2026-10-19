@@ -1,0 +1,189 @@
+<!doctype html><html data-theme="light"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Theme toggle - theme6 dual-layer demos</title>
+<style>
+@font-face{font-family:'Tinos';font-style:normal;font-weight:400;font-display:swap;src:url('Tinos_400.woff2') format('woff2')}
+@font-face{font-family:'Tinos';font-style:normal;font-weight:700;font-display:swap;src:url('Tinos_700.woff2') format('woff2')}
+/* THE KEY IDEA: both themes are REAL, fully painted pages stacked on top of each other.
+   A toggle never recolors anything during motion - it only reveals the layer that is
+   already painted. Zero recolor block, zero snapshots, transform/opacity only. */
+.tl-light{--bg:#F7F7F2;--card:#FFFFFF;--tx:#1c2b23;--mut:#6b7a70;--bd:#d8d5cb;--soft:#eef2ec;--brand:#17643D;--ttl:#12211a;--sub:#55645b;--sh:0 8px 26px #17643d14,0 1px 3px #17643d12;--inbg:#fff;--ph:#9aa79e}
+.tl-dark{--bg:#0D1310;--card:#151F19;--tx:#E6EDE8;--mut:#93A39A;--bd:#27352D;--soft:#1B2820;--brand:#2A8A58;--ttl:#DDF0E4;--sub:#A9B8AE;--sh:0 8px 26px #0008,0 1px 3px #0007;--inbg:#101914;--ph:#6B7F73}
+:root{--bg:#F7F7F2;--card:#FFFFFF;--tx:#1c2b23;--bd:#d8d5cb;--brand:#17643D;--sh:0 8px 26px #17643d14,0 1px 3px #17643d12}
+[data-theme=dark]{--bg:#0D1310;--card:#151F19;--tx:#E6EDE8;--bd:#27352D;--brand:#2A8A58;--sh:0 8px 26px #0008,0 1px 3px #0007}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);font-family:'Times New Roman',Tinos,'Mukta Malar',serif;min-height:100vh}
+/* the two pre-painted pages */
+.layer{position:fixed;inset:0;overflow:auto;background:var(--bg);color:var(--tx);opacity:0;pointer-events:none}
+.layer.on{opacity:1;pointer-events:auto}
+.wrap{max-width:420px;margin:0 auto;padding:56px 20px 120px}
+.logo{text-align:center;margin-bottom:18px}
+.logo b{display:block;font-size:26px;letter-spacing:4px;color:var(--ttl)}
+.logo span{font-size:11px;letter-spacing:2.5px;color:var(--mut)}
+h1{font-size:22px;margin:0 0 14px;color:var(--ttl)}
+.card{background:var(--card);border:1px solid var(--bd);border-radius:14px;padding:18px;box-shadow:var(--sh)}
+.tabs{display:flex;gap:6px;margin-bottom:14px}
+.tabs div{flex:1;text-align:center;padding:8px 0;border-radius:8px;background:var(--soft);color:var(--mut);font-size:13px}
+.tabs .on{background:var(--brand);color:#fff}
+label{display:block;font-size:12px;color:var(--sub);margin:10px 0 4px}
+.inp{width:100%;padding:10px 12px;border:1px solid var(--bd);border-radius:9px;background:var(--inbg);color:var(--tx);font-size:15px;font-family:inherit}
+.inp::placeholder{color:var(--ph)}
+.go{width:100%;margin-top:16px;padding:12px;border:0;border-radius:10px;background:var(--brand);color:#fff;font-size:15px;font-weight:700;font-family:inherit}
+.fp{display:block;text-align:center;margin-top:12px;font-size:13px;color:var(--brand)}
+/* toggle button chrome (tiny - the only thing that recolors) */
+#tbtn{position:fixed;top:calc(14px + env(safe-area-inset-top));right:14px;z-index:60;width:44px;height:44px;border-radius:50%;border:1px solid var(--bd);background:var(--card);color:var(--tx);cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;touch-action:manipulation;box-shadow:var(--sh)}
+#tbtn .tic{position:absolute;width:22px;height:22px;transition:transform .28s cubic-bezier(.3,.7,.2,1),opacity .22s ease}
+#tbtn .isun{transform:scale(0) rotate(-100deg);opacity:0}
+#tbtn .imoon{transform:scale(1) rotate(0deg);opacity:1}
+[data-theme=dark] #tbtn .isun{transform:scale(1) rotate(0deg);opacity:1}
+[data-theme=dark] #tbtn .imoon{transform:scale(0) rotate(100deg);opacity:0}
+#dbar{position:fixed;left:0;right:0;bottom:0;z-index:60;padding:10px 12px calc(10px + env(safe-area-inset-bottom));background:var(--card);border-top:1px solid var(--bd);font-size:12px;color:var(--tx);display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.pill{padding:5px 10px;border-radius:99px;border:1px solid var(--bd);background:transparent;color:var(--tx);font-size:12px;cursor:pointer;font-family:inherit}
+.pill.on{background:var(--brand);color:#fff;border-color:var(--brand)}
+.rw{position:fixed;border-radius:50%;overflow:hidden;contain:strict;will-change:transform;z-index:40;pointer-events:none}
+.bl{position:fixed;border-radius:50%;contain:strict;will-change:transform,opacity;z-index:40;pointer-events:none}
+</style></head><body>
+<button id="tbtn" aria-label="Theme">
+  <svg class="tic imoon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.5 13.2 A8.5 8.5 0 1 1 10.8 3.5 A7 7 0 0 0 20.5 13.2 Z" pathLength="1"/></svg>
+  <svg class="tic isun" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 16.9 A4.9 4.9 0 1 0 12 7.1 A4.9 4.9 0 0 0 12 16.9 Z" pathLength="1"/><path d="M12 2.1 V4.1 M12 19.9 V21.9 M4.2 4.2 L5.6 5.6 M18.4 18.4 L19.8 19.8 M2.1 12 H4.1 M19.9 12 H21.9 M4.2 19.8 L5.6 18.4 M18.4 5.6 L19.8 4.2" pathLength="1"/></svg>
+</button>
+<div id="layers"></div>
+<div id="dbar"><b>theme6 - no recolor during motion:</b>
+  <button class="pill on" data-s="ripple">1 Ripple</button>
+  <button class="pill" data-s="bloom">2 Bloom</button>
+  <button class="pill" data-s="dissolve">3 Dissolve</button>
+  <button class="pill" id="fx">lowfx: off</button>
+</div>
+<script>
+var style='ripple', lowfx=false, busy=false, pre=null, preT=0;
+var RM=matchMedia('(prefers-reduced-motion: reduce)');
+var PAGE='<div class="wrap"><div class="logo"><b>GLOBAL</b><span>CONSTRUCTION &amp; PROPERTIES</span></div>'
++'<h1>Sign in</h1><div class="card"><div class="tabs"><div>Officials</div><div class="on">Engineers</div><div>Finance</div></div>'
++'<label>Gmail or User ID</label><input class="inp" placeholder="Enter your Gmail or User ID">'
++'<label>Password</label><input class="inp" type="password" placeholder="Enter your password">'
++'<button class="go">Sign in</button><a class="fp">Forgot password?</a></div></div>';
+function mkLayer(theme){var d=document.createElement('div');d.className='layer tl-'+theme;d.dataset.theme=theme;d.innerHTML=PAGE;return d}
+var LA=mkLayer('light'), LB=mkLayer('dark');
+var host=document.getElementById('layers');host.appendChild(LA);host.appendChild(LB);
+LA.classList.add('on');
+function layerOf(t){return t==='dark'?LB:LA}
+function cur(){return document.documentElement.getAttribute('data-theme')}
+// flip = show the already-painted layer. No recolor work at all.
+function showLayer(n,instant){
+  var oldL=layerOf(cur()), newL=layerOf(n);
+  document.documentElement.setAttribute('data-theme',n);
+  newL.classList.add('on');oldL.classList.remove('on');
+}
+function btnGeo(){var b=document.getElementById('tbtn').getBoundingClientRect();var cx=b.left+b.width/2,cy=b.top+b.height/2;var rad=Math.ceil(Math.sqrt(Math.max(cx,innerWidth-cx)**2+Math.max(cy,innerHeight-cy)**2))+8;return[cx,cy,rad]}
+
+/* ---- 1 RIPPLE: the new theme's REAL PAGE grows inside a circular window from the button.
+   Circle container scales up (transform); the page inside counter-scales (transform) so it
+   stays perfectly still - pure compositor, no repaints, no snapshots. ---- */
+function prepRipple(n){
+  var g=btnGeo(),R=g[2],cx=g[0],cy=g[1];
+  var wrap=document.createElement('div');wrap.className='rw';
+  wrap.style.width=wrap.style.height=(R*2)+'px';
+  wrap.style.left=(cx-R)+'px';wrap.style.top=(cy-R)+'px';
+  wrap.style.transform='scale(0.02)';wrap.style.transformOrigin='50% 50%';
+  var lay=layerOf(n);
+  lay.classList.add('on');lay.style.opacity='1';
+  lay.style.position='absolute';lay.style.inset='auto';
+  lay.style.width='100vw';lay.style.height='100vh';
+  lay.style.left=(R-cx)+'px';lay.style.top=(R-cy)+'px';
+  lay.style.overflow='hidden';
+  lay.style.transform='scale(50)';lay.style.transformOrigin=cx+'px '+cy+'px';
+  lay.style.willChange='transform';
+  wrap.appendChild(lay);document.body.appendChild(wrap);
+  wrap.getBoundingClientRect();
+  return{wrap:wrap,lay:lay};
+}
+function unRipple(pp,n){
+  var lay=pp.lay;
+  lay.style.cssText='';lay.classList.remove('on');
+  host.appendChild(lay);
+  pp.wrap.remove();
+}
+function ripple(n){
+  if(!pre)pre=prepRipple(n);
+  var pp=pre;pre=null;
+  var D=lowfx?190:260;
+  var a=pp.wrap.animate([{transform:'scale(0.02)'},{transform:'scale(1)'}],{duration:D,easing:'cubic-bezier(.25,.8,.3,1)',fill:'forwards'});
+  pp.lay.animate([{transform:'scale(50)'},{transform:'scale(1)'}],{duration:D,easing:'cubic-bezier(.25,.8,.3,1)',fill:'forwards'});
+  a.finished.then(function(){unRipple(pp,n);showLayer(n,true);busy=false}).catch(function(){unRipple(pp,n);showLayer(n,true);busy=false});
+}
+
+/* ---- 2 BLOOM: a soft water bloom of the new theme's colour wells up from the button
+   (soft-edged fill + an expanding ripple ring), covers the screen, the layers swap
+   invisibly underneath, and the bloom melts away. All gradients are pre-painted; the
+   animation is transform+opacity only. ---- */
+function bloom(n){
+  var g=btnGeo(),R=g[2],cx=g[0],cy=g[1];
+  var bg=n==='dark'?'#0D1310':'#F7F7F2';
+  var ringCol=n==='dark'?'rgba(42,138,88,.55)':'rgba(23,100,61,.40)';
+  function hexA(h,a){var r=parseInt(h.slice(1,3),16),g2=parseInt(h.slice(3,5),16),b=parseInt(h.slice(5,7),16);return 'rgba('+r+','+g2+','+b+','+a+')'}
+  var fill=document.createElement('div');fill.className='bl';
+  fill.style.background='radial-gradient(circle, '+bg+' 0%, '+bg+' 58%, '+hexA(bg,0)+' 76%)';
+  var ring=document.createElement('div');ring.className='bl';
+  ring.style.background='radial-gradient(circle, transparent 52%, '+ringCol+' 62%, transparent 74%)';
+  [fill,ring].forEach(function(d,i){
+    var s=R*2*(i?1.25:1.12);
+    d.style.width=d.style.height=s+'px';
+    d.style.left=(cx-s/2)+'px';d.style.top=(cy-s/2)+'px';
+    d.style.transform='scale(0.01)';
+    document.body.appendChild(d);
+  });
+  fill.getBoundingClientRect();
+  var DF=lowfx?190:270, DR=lowfx?240:340, OUT=lowfx?120:180;
+  var f1=fill.animate([{transform:'scale(0.01)',opacity:1},{transform:'scale(1)',opacity:1}],{duration:DF,easing:'cubic-bezier(.25,.8,.3,1)',fill:'forwards'});
+  ring.animate([{transform:'scale(0.01)',opacity:1},{transform:'scale(1)',opacity:0}],{duration:DR,easing:'cubic-bezier(.2,.7,.3,1)',fill:'forwards'});
+  // cover is full a touch before the grow ends; swap layers there, then melt the fill away
+  var out=fill.animate([{opacity:1,transform:'scale(1)'},{opacity:0,transform:lowfx?'scale(1)':'scale(1.04)'}],{duration:OUT,delay:DF,easing:'ease-out',fill:'forwards'});
+  var flipped=false;
+  function doFlip(){if(!flipped){flipped=true;showLayer(n,true)}}
+  setTimeout(doFlip,Math.round(DF*0.92));
+  f1.finished.then(doFlip).catch(doFlip);
+  out.finished.then(function(){doFlip();fill.remove();ring.remove();busy=false}).catch(function(){doFlip();fill.remove();ring.remove();busy=false});
+}
+
+/* ---- 3 DISSOLVE: the calmest possible - the new theme's page is already painted under
+   the old one; the old simply fades away while the icon rolls over. Nothing moves. ---- */
+function dissolve(n){
+  var oldL=layerOf(cur()), newL=layerOf(n);
+  newL.classList.add('on');newL.style.zIndex='2';newL.style.opacity='0';
+  newL.getBoundingClientRect();
+  document.documentElement.setAttribute('data-theme',n); // only recolors the tiny button
+  var D=lowfx?150:220;
+  var a=newL.animate([{opacity:0},{opacity:1}],{duration:D,easing:'ease-out',fill:'forwards'});
+  if(!lowfx)document.getElementById('tbtn').animate([{transform:'rotate(0deg)'},{transform:'rotate(360deg)'}],{duration:380,easing:'cubic-bezier(.3,.7,.3,1)'});
+  a.finished.then(function(){
+    oldL.classList.remove('on');newL.style.zIndex='';newL.style.opacity='';busy=false;
+  }).catch(function(){oldL.classList.remove('on');newL.style.zIndex='';newL.style.opacity='';busy=false});
+}
+
+function toggle(){
+  if(busy)return;busy=true;
+  var n=cur()==='dark'?'light':'dark';
+  if(RM.matches){showLayer(n,true);busy=false;return}
+  if(style==='ripple')ripple(n);
+  else if(style==='bloom')bloom(n);
+  else dissolve(n);
+}
+function prewarm(){
+  if(pre||busy||style!=='ripple')return;
+  var n=cur()==='dark'?'light':'dark';
+  pre=prepRipple(n);preT=Date.now();
+  setTimeout(function(){if(pre&&Date.now()-preT>=1400){unRipple(pre,n);pre=null}},1400);
+}
+var tb=document.getElementById('tbtn');
+tb.addEventListener('pointerdown',prewarm,{passive:true});
+tb.addEventListener('click',toggle);
+Array.prototype.forEach.call(document.querySelectorAll('[data-s]'),function(p){
+  p.addEventListener('click',function(){
+    if(pre){unRipple(pre,cur()==='dark'?'light':'dark');pre=null}
+    style=p.dataset.s;
+    Array.prototype.forEach.call(document.querySelectorAll('[data-s]'),function(x){x.classList.toggle('on',x===p)});
+  });
+});
+document.getElementById('fx').addEventListener('click',function(){
+  lowfx=!lowfx;document.getElementById('fx').textContent='lowfx: '+(lowfx?'on':'off');
+  document.getElementById('fx').classList.toggle('on',lowfx);
+});
+</script></body></html>
