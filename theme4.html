@@ -127,7 +127,7 @@ function nativeCircle(n){
     var K=Math.ceil((Math.max(kx,ky)+0.4)*10)/10;
     document.documentElement.animate(
       {transform:['scale(0)','scale('+K+')'],transformOrigin:[g[0]+'px '+g[1]+'px',g[0]+'px '+g[1]+'px']},
-      {duration:380,easing:'cubic-bezier(.25,.8,.3,1)',pseudoElement:'::view-transition-new(root)'});
+      {duration:340,easing:'cubic-bezier(.3,.75,.25,1)',pseudoElement:'::view-transition-new(root)'});
   }).catch(function(){});
   vt.finished.then(function(){busy=false},function(){busy=false});
 }
@@ -170,6 +170,13 @@ function toggle(){
       },150);
     })});
   }
+}
+// Warm up the view-transition pipeline on idle: the FIRST startViewTransition on a page is the
+// slowest (capture + pseudo-tree setup); on a low-end phone it lands so late the theme visibly
+// hard-snaps before the animation plays. A no-op warm-up makes every real toggle warm.
+if(document.startViewTransition && !RM.matches){
+  var warm=function(){try{document.startViewTransition(function(){})}catch(e){}};
+  if('requestIdleCallback' in window){requestIdleCallback(warm,{timeout:2000})}else{setTimeout(warm,1200)}
 }
 var tb=document.getElementById('tbtn');
 tb.addEventListener('pointerdown',prewarm,{passive:true});
