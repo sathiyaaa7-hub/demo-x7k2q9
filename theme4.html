@@ -95,7 +95,7 @@ function prewarm(){
 
 // FAST CIRCLE: compositor-only (transform+opacity) cover circle. No page snapshots, no clip-path,
 // no double rasterization. Grow+fade are BOTH scheduled up front on the animation clock; the theme
-// flips at ~86% grow (only a tiny far-corner crescent uncovered), so the page recolor block overlaps
+// flips at ~94% grow (only a sliver of the far corner uncovered), so the page recolor block overlaps
 // the grow's tail and never freezes a visible frame.
 function fastCircle(n){
   if(!pre)prewarm();
@@ -110,7 +110,7 @@ function fastCircle(n){
     {duration:OD,delay:GD,easing:'ease-out',fill:'forwards'});
   var flipped=false;
   function doFlip(){if(!flipped){flipped=true;flip(n)}}
-  setTimeout(doFlip,Math.round(GD*0.86));
+  setTimeout(doFlip,Math.round(GD*0.94));
   grow.finished.then(doFlip).catch(doFlip);
   out.finished.then(function(){doFlip();o.remove();busy=false}).catch(function(){doFlip();o.remove();busy=false});
 }
